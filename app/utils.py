@@ -1,8 +1,9 @@
 import json
+from app.config import DATA_FILE
 
 def load_tasks():
     try:
-        with open("data.json", "r") as f:
+        with open(DATA_FILE, "r") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return []
@@ -10,6 +11,6 @@ def load_tasks():
 
 def save_tasks(tasks):
     # write to data.json
-    with open("data.json", "w") as f:
+    with open(DATA_FILE, "w") as f:
         json.dump(tasks, f, indent=4)
 

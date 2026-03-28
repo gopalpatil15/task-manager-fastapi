@@ -1,17 +1,18 @@
-from utils import load_tasks, save_tasks
-from services import add_task, get_tasks, update_task, delete_task
+from fastapi import FastAPI
+from app.api import router
+from app.config import APP_TITLE, APP_DESCRIPTION, APP_VERSION
 
-tasks = load_tasks()
+# Create FastAPI app
+app = FastAPI(
+    title=APP_TITLE,
+    description=APP_DESCRIPTION,
+    version=APP_VERSION
+)
 
-# Add
-tasks = add_task(tasks, "Learn API", "high")
+# Include the API router
+app.include_router(router)
 
-# Update id=1
-tasks = update_task(tasks, 1, "Master FastAPI")
-
-# Delete id=2
-tasks = delete_task(tasks, 2)
-
-save_tasks(tasks)
-
-print(tasks)
+# Run the app with uvicorn
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

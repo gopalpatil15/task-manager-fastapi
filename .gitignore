@@ -25,4 +25,4 @@ Thumbs.db
 *.log
 
 # Data (uncomment if you want to ignore generated data.json)
-# data.json
+data/data.json

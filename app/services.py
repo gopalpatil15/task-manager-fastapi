@@ -26,4 +26,3 @@ def update_task(tasks, task_id, new_title):
 def delete_task(tasks, task_id):
     tasks = [task for task in tasks if task["id"] != task_id]
     return tasks
-    

@@ -1,0 +1,6 @@
+fastapi==0.135.2
+uvicorn[standard]==0.42.0
+pydantic==2.12.5
+psycopg2-binary==2.9.11
+pytest==7.4.0
+httpx==0.25.0
