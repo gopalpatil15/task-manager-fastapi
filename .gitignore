@@ -26,3 +26,5 @@ Thumbs.db
 
 # Data (uncomment if you want to ignore generated data.json)
 data/data.json
+
+.env

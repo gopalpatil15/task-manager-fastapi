@@ -21,7 +21,7 @@ A RESTful Task Manager API built using FastAPI and Python, supporting CRUD opera
 ## 📦 Project Structure
 ```
 task_manager/
-├─ app/                    # Main application package
+├─ app/                   # Main application package
 │  ├─ __init__.py         # Package marker
 │  ├─ main.py             # FastAPI app creation & router inclusion
 │  ├─ api.py              # All API routes

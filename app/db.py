@@ -1,15 +1,28 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-def get_connection():
-    conn = psycopg2.connect(
-        host = "localhost",
-        database = "task_db",
-        user = "postgres",
-        password = "7280"
-    )
-    return conn
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+from fastapi import Depends, HTTPException
 
+load_dotenv()
+
+def get_connection():
+    # Ensure your .env has these exact keys!
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        cursor_factory=RealDictCursor 
+    )
+    try:
+        yield conn
+    finally:
+        conn.close()
+        
 def fetch_task():
     conn = get_connection()
     cursor = conn.cursor()
@@ -67,4 +80,3 @@ def delete_task(task_id: int):
     finally:
         cursor.close()
         conn.close()
-
