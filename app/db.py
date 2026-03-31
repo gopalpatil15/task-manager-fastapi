@@ -58,20 +58,34 @@ def get_connection():
 def fetch_task(conn, user_id):
     cursor = conn.cursor()
     # RealDictCursor already makes these dictionaries!
-    cursor.execute("SELECT id, title, status, priority FROM tasks where user_id = %s")
+    cursor.execute("SELECT id, title, status, priority FROM tasks and user_id = ")
     tasks = cursor.fetchall()
     cursor.close()
     return tasks
 
-def update_task(conn, task_id: int, new_title: str, user_id):
+def update_task(conn, task_id: int, title: str, priority: str, user_id: int):
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE tasks SET title = %s WHERE id = %s and user_id = %s", (new_title, task_id))
+        # We use 'AND user_id = %s' for security
+        cursor.execute(
+            """
+            UPDATE tasks 
+            SET title = %s, priority = %s 
+            WHERE id = %s AND user_id = %s
+            RETURNING id
+            """,
+            (title, priority, task_id, user_id)
+        )
+        updated_row = cursor.fetchone()
         conn.commit()
+        
+        if not updated_row:
+            return {"status": "error", "message": "Task not found or unauthorized"}
+            
         return {"status": "success", "updated_id": task_id}
     except Exception as e:
         conn.rollback()
-        return {"status": "error", "message": str(e)}   
+        return {"status": "error", "message": str(e)}
     finally:
         cursor.close()
 
@@ -83,6 +97,7 @@ def insert_task(conn, title, priority, user_id):
             "INSERT INTO tasks (title, priority, user_id) VALUES (%s, %s, %s)",
             (title, priority, user_id)
         )
+        new_id = cursor.fetchone()[0]
         conn.commit()
         return {"status": "success", "message": "Task added to DB"}
     except Exception as e:
@@ -94,20 +109,24 @@ def insert_task(conn, title, priority, user_id):
         cursor.close()
 
 
-def insert_task(conn, title, priority, user_id):
+def delete_task_db(conn, task_id: int, user_id: int):
     cursor = conn.cursor()
     try:
-        # Pass variables as a tuple to the execute method
+        # 1. Added the missing '= %s'
         cursor.execute(
-            "INSERT INTO tasks (title, priority, user_id) VALUES (%s, %s, %s)",
-            (title, priority, user_id)
+            "DELETE FROM tasks WHERE id = %s AND user_id = %s RETURNING id", 
+            (task_id, user_id)
         )
+        deleted_row = cursor.fetchone()
         conn.commit()
-        return {"status": "success", "message": "Task added to DB"}
+
+        if not deleted_row:
+            return {"status": "error", "message": "Task not found or not yours"}
+
+        return {"status": "success", "message": f"Task {task_id} deleted"}
     except Exception as e:
         conn.rollback()
-        return {"error": str(e)}
+        return {"status": "error", "message": str(e)}
     finally:
-        # Only close the cursor. 
-        # The 'conn' is closed by the get_connection dependency.
+        # 2. ONLY close the cursor
         cursor.close()

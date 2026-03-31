@@ -41,6 +41,7 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     username: str
     password: str
+    current_user: dict
 
 
 class Token(BaseModel):
