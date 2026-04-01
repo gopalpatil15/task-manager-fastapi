@@ -1,207 +1,169 @@
-# Task Manager API (FastAPI)
+# 🚀 Task Manager API
 
-## 🚀 Description
-A RESTful Task Manager API built using FastAPI and Python, supporting CRUD operations, filtering, search, and task status management with a modular backend architecture and both file-based and database persistence.
+A secure, production-ready RESTful API built using **FastAPI** and **PostgreSQL**, designed with clean architecture principles, authentication, and scalable backend practices.
 
-## 💡 Highlights
-- Designed modular backend architecture separating API, services, models, and utility layers
-- Implemented RESTful APIs with filtering, search, and task status management
-- Structured request validation using Pydantic models
-- Support for both JSON file storage and PostgreSQL database
-- Automatic API documentation with Swagger UI
+---
+
+## 🔥 Features
+
+* **JWT Authentication** (OAuth2 Password Flow)
+* **User-based Access Control** (multi-user support)
+*  **Task Management System**
+*  **Secure Password Hashing** using Bcrypt
+*  **PostgreSQL Integration** with relational schema
+*  **Input Validation** using Pydantic
+*  **Interactive API Docs** via Swagger UI
+
+---
+
+## 🏗 Architecture Overview
+
+This project follows a **modular backend structure**:
+
+* **Routes Layer** → Handles API endpoints
+* **Auth Layer** → JWT & security logic
+* **Database Layer** → Connection + queries
+* **Schema Layer** → Request/response validation
+
+Designed for clarity, scalability, and maintainability.
+
+---
 
 ## 🛠 Tech Stack
-- Python
-- FastAPI
-- Pydantic
-- JSON (file-based storage)
-- PostgreSQL (database storage)
-- Uvicorn (ASGI server)
 
-## 📦 Project Structure
-```
-task_manager/
-├─ app/                   # Main application package
-│  ├─ __init__.py         # Package marker
-│  ├─ main.py             # FastAPI app creation & router inclusion
-│  ├─ api.py              # All API routes
-│  ├─ models.py           # Pydantic models (TaskCreate, TaskUpdate, etc.)
-│  ├─ services.py         # Business logic (CRUD operations)
-│  ├─ db.py               # Database functions
-│  ├─ utils.py            # JSON load/save helpers
-│  └─ config.py           # Settings & constants
-│
-├─ data/                  # Data storage
-│  └─ data.json           # Task data (JSON storage)
-│
-├─ tests/                 # Test suite
-│  └─ test_api.py         # Basic API tests
-│
-├─ docs/                  # Documentation
-│  └─ README.md           # API documentation
-│
-├─ main.py                # Entry point
-├─ requirements.txt       # Dependencies
-└─ README.md              # Project overview
+| Layer      | Technology        |
+| ---------- | ----------------- |
+| Backend    | FastAPI (Python)  |
+| Database   | PostgreSQL        |
+| Auth       | JWT (python-jose) |
+| Security   | Passlib (Bcrypt)  |
+| Validation | Pydantic          |
+| Server     | Uvicorn           |
+
+---
+
+## 🔐 Authentication Flow
+
+1. User registers → credentials stored securely
+2. User logs in → receives JWT token
+3. Token is used in protected routes
+
+```http
+Authorization: Bearer <your_token>
 ```
 
-## 📌 Features
-- Create, update, delete tasks (JSON + Database)
-- Mark tasks as completed
-- Get all tasks and completed tasks
-- Search tasks by keyword
-- Filter tasks by priority
-- Database connection testing
-- Modular and scalable architecture
+---
 
 ## 📡 API Endpoints
 
-### Tasks (JSON Storage)
-- `GET /tasks` → Get all tasks
-- `POST /tasks` → Create new task
-- `PUT /tasks/{task_id}` → Update task
-- `DELETE /tasks/{task_id}` → Delete task
-- `PUT /tasks/{task_id}/complete` → Mark task as completed
-- `GET /tasks/completed` → Get completed tasks
-- `GET /tasks/search?query=...` → Search tasks
-- `GET /tasks/filter?priority=...` → Filter tasks by priority
+### 🔑 Authentication
 
-### Database Tasks
-- `POST /db_task` → Create task in database
-- `GET /get_task` → Get all database tasks
-- `PUT /update_task_db/{task_id}` → Update database task
-- `DELETE /tasks_db/{task_id}` → Delete database task
+| Method | Endpoint    | Description   |
+| ------ | ----------- | ------------- |
+| POST   | `/register` | Create user   |
+| POST   | `/login`    | Get JWT token |
 
-### Utility
-- `GET /test-db` → Test database connection
-- `GET /` → API status
-- `GET /favicon.ico` → Favicon
+---
 
-## 🛠 How it works
-- Tasks can be stored in `data/data.json` as a list of dictionaries (JSON mode)
-- Tasks can also be stored in PostgreSQL database (DB mode)
-- Business logic is handled in `app/services.py`
-- File persistence is managed using `app/utils.py`
-- Database operations are handled in `app/db.py`
-- FastAPI exposes REST endpoints in `app/api.py`
-- Pydantic models in `app/models.py` ensure data validation
+### 📋 Tasks (Protected)
 
-## ▶️ Run Locally
+| Method | Endpoint           | Description    |
+| ------ | ------------------ | -------------- |
+| GET    | `/tasks`           | Get user tasks |
+| POST   | `/tasks`           | Create task    |
+| PUT    | `/tasks/{task_id}` | Update task    |
+| DELETE | `/tasks/{task_id}` | Delete task    |
 
-1. Activate virtual environment:
+✔ All operations are **user-specific** (secure isolation)
+
+---
+
+## ⚙️ Setup & Installation
+
+### 1. Clone repository
+
 ```bash
-venv\Scripts\activate
+git clone <your-repo-url>
+cd task_manager
 ```
 
-2. Install dependencies:
+### 2. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure database (optional):
-Update `app/config.py` with your PostgreSQL connection string:
-```python
-DATABASE_URL = "postgresql://username:password@localhost:5432/task_manager"
+### 3. Configure environment variables
+
+Create `.env` file:
+
+```env
+DB_HOST=localhost
+DB_NAME=task_manager
+DB_USER=postgres
+DB_PASSWORD=yourpassword
+SECRET_KEY=your_secret_key
 ```
 
-4. Start the server:
-```bash
-python main.py
-```
-Or with uvicorn:
+---
+
+### 4. Run server
+
 ```bash
 uvicorn app.main:app --reload
 ```
 
-5. Open API docs:
-http://127.0.0.1:8000/docs
+---
 
-## 📝 Usage Examples
+### 5. Open API docs
 
-### Create a Task (JSON)
-```bash
-curl -X POST "http://127.0.0.1:8000/tasks" \
-     -H "Content-Type: application/json" \
-     -d '{"title": "Learn FastAPI", "priority": "high"}'
-```
-
-### Get All Tasks
-```bash
-curl -X GET "http://127.0.0.1:8000/tasks"
-```
-
-### Update a Task
-```bash
-curl -X PUT "http://127.0.0.1:8000/tasks/1" \
-     -H "Content-Type: application/json" \
-     -d '{"title": "Master FastAPI", "priority": "high"}'
-```
-
-### Search Tasks
-```bash
-curl -X GET "http://127.0.0.1:8000/tasks/search?query=learn"
-```
-
-### Filter by Priority
-```bash
-curl -X GET "http://127.0.0.1:8000/tasks/filter?priority=high"
-```
-
-### Create Task in Database
-```bash
-curl -X POST "http://127.0.0.1:8000/db_task?title=Database%20Task&priority=medium"
-```
-
-### Update Database Task
-```bash
-curl -X PUT "http://127.0.0.1:8000/update_task_db/1" \
-     -H "Content-Type: application/json" \
-     -d '{"title": "Updated DB Task", "priority": "high"}'
-```
-
-## 🧪 Testing
-
-Run the test suite:
-```bash
-pytest
-```
-
-Run specific tests:
-```bash
-pytest tests/test_api.py
-```
-
-## 🔄 Future Improvements
-
-- [ ] Add JWT-based authentication
-- [ ] Implement user management
-- [ ] Add task categories/tags
-- [ ] Improve error handling and validation
-- [ ] Add rate limiting
-- [ ] Implement caching
-- [ ] Add API versioning
-- [ ] Create Docker containerization
-- [ ] Add CI/CD pipeline
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new features
-5. Submit a pull request
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-2. Create a feature branch
-3. Commit your changes
-4. Push and open a pull request
-
-
-📄 License
-
-MIT License — free to use and modify
+👉 http://127.0.0.1:8000/docs
 
 ---
 
+## 🧪 Sample Request
+
+### Create Task
+
+```bash
+curl -X POST "http://127.0.0.1:8000/tasks" \
+-H "Authorization: Bearer <token>" \
+-H "Content-Type: application/json" \
+-d '{"title": "Learn FastAPI", "priority": "high"}'
+```
+
+---
+
+## 📌 Key Design Decisions
+
+* Used **PostgreSQL over JSON** for real-world data persistence
+* Implemented **JWT auth** for secure user sessions
+* Enforced **user-level data isolation** in all queries
+* Kept architecture **simple but scalable** (no over-engineering)
+
+---
+
+## 🚀 Future Improvements
+
+* Pagination & filtering
+* Docker deployment
+* Async database support (asyncpg)
+* Role-based access control
+* CI/CD pipeline
+
+---
+
+## 💼 Why this Project Matters
+
+This project demonstrates:
+
+* Backend API development skills
+* Authentication & security implementation
+* Database design & relationships
+* Clean and maintainable code structure
+
+---
+
+## 📄 License
+
+MIT License
