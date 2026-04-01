@@ -69,30 +69,29 @@ def register(user: UserCreate, conn = Depends(get_connection)):
 
 
 @router.post("/login", response_model=Token)
-async def login(
+def login(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     conn = Depends(get_connection)
 ):
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    # 1. Fetch user from DB using the form data username
-    cursor = conn.cursor()
+
     cursor.execute("SELECT * FROM users WHERE username = %s", (form_data.username,))
     db_user = cursor.fetchone()
     cursor.close()
 
-    # 2. Verify user exists and password matches
     if not db_user or not pwd_context.verify(form_data.password, db_user["hashed_password"]):
         raise HTTPException(status_code=401, detail="Invalid username or password")
     
-    # 3. Create token
     access_token = create_access_token(data={"sub": db_user["username"]})
     
     return {
-        "access_token": access_token, 
-        "token_type": "bearer", 
-        "current_user": {"id": db_user["id"], "username": db_user["username"]}
+        "access_token": access_token,
+        "token_type": "bearer",
+        "current_user": {
+            "id": db_user["id"],
+            "username": db_user["username"]
+        }
     }
-
 
 # --- TASK ENDPOINTS (DB ONLY) ---
 

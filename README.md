@@ -36,12 +36,37 @@ A modern, modular Task Manager API built with FastAPI that supports both JSON fi
 ```
 task_manager/
 ├── app/              # Application package
-├── data/             # JSON data storage
+│   ├── api.py        # FastAPI endpoint definitions + auth
+│   ├── db.py         # PostgreSQL connection + task DB operations
+│   ├── models.py     # Pydantic request/response schemas
+│   ├── services.py   # Business logic (optional layer)
+│   └── utils.py      # Helpers and common utilities
+├── data/             # JSON file storage option (fallback)
 ├── tests/            # Test suite
 ├── docs/             # Documentation
 ├── main.py           # Entry point
 └── requirements.txt  # Dependencies
 ```
+
+## Project Analysis & Update Notes
+
+- `TaskCreate`/`TaskUpdate` schemas now include optional `description` and `priority` to align with DB fields.
+- API token-based auth uses `OAuth2PasswordBearer` with JWT, and user-specific tasks are enforced by `user_id` checks.
+- Database operations in `app/db.py` implement transactions with commit/rollback and row-level ownership guard (`WHERE user_id = %s`).
+- `app/api.py` now returns detailed error HTTP codes for unauthorized or not-found operations.
+- The previous bug ("TaskCreate has no attribute description") is resolved by ensuring model fields match endpoint usage.
+
+## Quick Validation
+
+1. Create records:
+   - POST `/register` + POST `/login` to get bearer token.
+   - POST `/tasks` with body `{"title": "Test", "description": "desc", "priority": "high"}`.
+2. Read records:
+   - GET `/tasks` authenticated.
+3. Update/Delete records (user-scoped):
+   - PUT `/tasks/{id}` and DELETE `/tasks/{id}`.
+4. Run tests:
+   - `pytest -q tests/test_api.py`.
 
 ## API Endpoints
 
