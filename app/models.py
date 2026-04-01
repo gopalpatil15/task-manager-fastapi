@@ -1,9 +1,10 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class TaskCreate(BaseModel):
     title: str
+    description: Optional[str] = None
     priority: str
 
     #  Defines structure of incoming request body
@@ -16,6 +17,7 @@ class TaskCreate(BaseModel):
 
 class TaskUpdate(BaseModel):
     title: str
+    description: Optional[str] = None
     priority: str
 
     #  Used when updating task
@@ -25,6 +27,7 @@ class TaskUpdate(BaseModel):
 class TaskResponse(BaseModel):
     id: int
     title: str
+    description: Optional[str] = None
     status: str
     priority: str
 
@@ -41,9 +44,10 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     username: str
     password: str
-    current_user: dict
 
 
 class Token(BaseModel):
     access_token: str
     token_type: str
+    current_user: dict 
+    description: Optional[str] = None

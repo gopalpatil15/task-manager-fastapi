@@ -27,15 +27,33 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS tasks (
             id SERIAL PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
+            description TEXT,              -- <--- ADDED THIS LINE
             status VARCHAR(20) DEFAULT 'pending',
             priority VARCHAR(20) DEFAULT 'medium',
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
         )
         """
     )
+
     for command in commands:
         cursor.execute(command)
     conn.commit()
+    cursor.close()
+    
+    # Check if user_id column exists, if not add it
+    cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'user_id'")
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE tasks ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE")
+        conn.commit()
+        print("Added user_id column")
+    
+    # Check tables
+    cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+    print("Tables:", cursor.fetchall())
+    
+    cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'tasks'")
+    print("Tasks columns:", cursor.fetchall())
+    
     cursor.close()
     conn.close()
     print("Tables created successfully!")
@@ -58,23 +76,23 @@ def get_connection():
 def fetch_task(conn, user_id):
     cursor = conn.cursor()
     # RealDictCursor already makes these dictionaries!
-    cursor.execute("SELECT id, title, status, priority FROM tasks and user_id = ")
+    cursor.execute("SELECT id, title, description, status, priority FROM tasks WHERE user_id = %s", (user_id,))
     tasks = cursor.fetchall()
     cursor.close()
     return tasks
 
-def update_task(conn, task_id: int, title: str, priority: str, user_id: int):
+def update_task(conn, task_id: int, title: str, description: str, priority: str, user_id: int):
     cursor = conn.cursor()
     try:
         # We use 'AND user_id = %s' for security
         cursor.execute(
             """
             UPDATE tasks 
-            SET title = %s, priority = %s 
+            SET title = %s, description = %s, priority = %s 
             WHERE id = %s AND user_id = %s
             RETURNING id
             """,
-            (title, priority, task_id, user_id)
+            (title, description, priority, task_id, user_id)
         )
         updated_row = cursor.fetchone()
         conn.commit()
@@ -89,23 +107,21 @@ def update_task(conn, task_id: int, title: str, priority: str, user_id: int):
     finally:
         cursor.close()
 
-def insert_task(conn, title, priority, user_id):
+def insert_task(conn, title, description, priority, user_id):
     cursor = conn.cursor()
     try:
-        # Pass variables as a tuple to the execute method
+        # Use 'user_id' to match your CREATE TABLE command
         cursor.execute(
-            "INSERT INTO tasks (title, priority, user_id) VALUES (%s, %s, %s)",
-            (title, priority, user_id)
+            "INSERT INTO tasks (title, description, priority, user_id) VALUES (%s, %s, %s, %s) RETURNING id",
+            (title, description, priority, user_id)
         )
         new_id = cursor.fetchone()[0]
         conn.commit()
-        return {"status": "success", "message": "Task added to DB"}
+        return {"status": "success", "message": "Task added to DB", "id": new_id}
     except Exception as e:
         conn.rollback()
         return {"error": str(e)}
     finally:
-        # Only close the cursor. 
-        # The 'conn' is closed by the get_connection dependency.
         cursor.close()
 
 

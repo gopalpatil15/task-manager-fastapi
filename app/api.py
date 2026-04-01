@@ -3,10 +3,12 @@ from app.models import TaskCreate, TaskUpdate, TaskResponse, UserCreate, UserLog
 from app.db import get_connection, fetch_task, update_task, insert_task, delete_task_db
 from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from typing import List
+from fastapi.security import OAuth2PasswordRequestForm
 import jwt
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
+import psycopg2.extras
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -65,15 +67,13 @@ def register(user: UserCreate, conn = Depends(get_connection)):
     finally:
         cursor.close()
 
-from fastapi.security import OAuth2PasswordRequestForm
-
-
 
 @router.post("/login", response_model=Token)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     conn = Depends(get_connection)
 ):
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     # 1. Fetch user from DB using the form data username
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE username = %s", (form_data.username,))
@@ -107,7 +107,15 @@ async def create_task(
     conn = Depends(get_connection),
     current_user = Depends(get_current_user)
 ):
-    result = insert_task(conn, task.title, task.priority, current_user["id"])
+    # Match the 5 arguments defined in insert_task
+    result = insert_task(
+        conn, 
+        task.title, 
+        task.description, 
+        task.priority, 
+        current_user["id"]  # This is the 'user_id'
+    )
+    
     if "error" in result:
         raise HTTPException(status_code=500, detail=result["error"])
     return result
@@ -119,7 +127,7 @@ async def update_existing_task(
     conn = Depends(get_connection),
     current_user = Depends(get_current_user)
 ):
-    result = update_task(conn, task_id, task_data.title, current_user["id"])
+    result = update_task(conn, task_id, task_data.title, task_data.description, task_data.priority, current_user["id"])
     if result.get("status") == "error":
         raise HTTPException(status_code=404, detail=result["message"])
     return result
